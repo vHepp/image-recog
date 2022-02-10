@@ -1,8 +1,0 @@
-cv2 = OpenCV 
-pytesseract = Google Tesseract OCR (Apache License 2.0)
-pyplot = 
-
-
-Links:
-
-pyimagesearch.com/2018/09/17/opencv-ocr-and-text-recognition-with-tesseract/
