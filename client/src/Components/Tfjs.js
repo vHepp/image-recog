@@ -6,7 +6,6 @@ const Tfjs = () => {
 	const [model, setModel] = useState(null)
 	const [imageURL, setImageURL] = useState(null);
 	const [results, setResults] = useState([])
-	const [history, setHistory] = useState([])
 
 	const imageRef = useRef()
 	const textInputRef = useRef()
@@ -53,12 +52,6 @@ const Tfjs = () => {
 		loadModel()
 	}, [])
 
-	useEffect(() => {
-		if (imageURL) {
-			setHistory([imageURL, ...history])
-		}
-	}, [imageURL])
-
 	if (isModelLoading) {
 		return <h2>Model Loading...</h2>
 	}
@@ -90,18 +83,6 @@ const Tfjs = () => {
 				</div>
 				{imageURL && <button className='button' onClick={identify}>Identify Image</button>}
 			</div>
-			{history.length > 0 && <div className="recentPredictions">
-				<h2>Recent Images</h2>
-				<div className="recentImages">
-					{history.map((image, index) => {
-						return (
-							<div className="recentPrediction" key={`${image}${index}`}>
-								<img src={image} alt='Recent Prediction' onClick={() => setImageURL(image)} />
-							</div>
-						)
-					})}
-				</div>
-			</div>}
 		</div>
 	);
 }
