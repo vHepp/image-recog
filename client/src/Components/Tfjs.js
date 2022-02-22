@@ -1,16 +1,23 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import {createWorker} from 'tesseract.js'
 import * as mobilenet from "@tensorflow-models/mobilenet";
 
 const Tfjs = () => {
+	//tensorflow states
 	const [isModelLoading, setIsModelLoading] = useState(false)
 	const [model, setModel] = useState(null)
 	const [imageURL, setImageURL] = useState(null);
 	const [results, setResults] = useState([])
+	
+	//tesseract states
+	const [ocr, setOcr] = useState('Recognizing...');
+	const [log, setLog] = useState({});
 
 	const imageRef = useRef()
 	const textInputRef = useRef()
 	const fileInputRef = useRef()
 
+	/* ------ Tensorflow Stuff ------ */
 	const loadModel = async () => {
 		setIsModelLoading(true)
 		try {
@@ -50,38 +57,67 @@ const Tfjs = () => {
 
 	useEffect(() => {
 		loadModel()
+		doOCR();
 	}, [])
 
 	if (isModelLoading) {
 		return <h2>Model Loading...</h2>
 	}
 
+
+	/* ------ Tesseract Stuff ----- */
+	const worker = createWorker({
+		logger: m => {
+			console.log(m)
+			setLog({
+				status: m.status,
+				progress: m.progress,
+			});
+		},
+	});
+
+	const doOCR = async () => {
+		await worker.load();
+		await worker.loadLanguage('eng');
+		await worker.initialize('eng');
+		const { data: { text } } = await worker.recognize(imageURL);
+		setOcr(text);
+	};
+
+
 	return (
 		<div className="App">
-			<h1 className='header'>Image Identification</h1>
-			<div className='inputHolder'>
-				<input type='file' accept='image/*' capture='camera' className='uploadInput' onChange={uploadImage} ref={fileInputRef} />
-				<button className='uploadImage' onClick={triggerUpload}>Upload Image</button>
-				<span className='or'>OR</span>
-				<input type="text" placeholder='Paster image URL' ref={textInputRef} onChange={handleOnChange} />
-			</div>
-			<div className="mainWrapper">
-				<div className="mainContent">
-					<div className="imageHolder">
-						{imageURL && <img src={imageURL} alt="Upload Preview" crossOrigin="anonymous" ref={imageRef} />}
-					</div>
-					{results.length > 0 && <div className='resultsHolder'>
-						{results.map((result, index) => {
-							return (
-								<div className='result' key={result.className}>
-									<span className='name'>{result.className}</span>
-									<span className='confidence'>Confidence level: {(result.probability * 100).toFixed(2)}% {index === 0 && <span className='bestGuess'>Best Guess</span>}</span>
-								</div>
-							)
-						})}
-					</div>}
+			<div className='Tensorflow'>
+				<h1 className='header'>Image Identification</h1>
+				<div className='inputHolder'>
+					<input type='file' accept='image/*' capture='camera' className='uploadInput' onChange={uploadImage} ref={fileInputRef} />
+					<button className='uploadImage' onClick={triggerUpload}>Upload Image</button>
+					<span className='or'>OR</span>
+					<input type="text" placeholder='Paster image URL' ref={textInputRef} onChange={handleOnChange} />
 				</div>
-				{imageURL && <button className='button' onClick={identify}>Identify Image</button>}
+				<div className="mainWrapper">
+					<div className="mainContent">
+						<div className="imageHolder">
+							{imageURL && <img src={imageURL} alt="Upload Preview" crossOrigin="anonymous" ref={imageRef} />}
+						</div>
+						{results.length > 0 && <div className='resultsHolder'>
+							{results.map((result, index) => {
+								return (
+									<div className='result' key={result.className}>
+										<span className='name'>{result.className}</span>
+										<span className='confidence'>Confidence level: {(result.probability * 100).toFixed(2)}% {index === 0 && <span className='bestGuess'>Best Guess</span>}</span>
+									</div>
+								)
+							})}
+						</div>}
+					</div>
+					{imageURL && <button className='button' onClick={identify}>Identify Image</button>}
+				</div>
+			</div>
+			<div className='Tesseract'>
+				<p>{ocr}</p>
+				<p>URL: {imageURL}</p>
+				<progress value={log.progress} max='1' ></progress>
 			</div>
 		</div>
 	);
