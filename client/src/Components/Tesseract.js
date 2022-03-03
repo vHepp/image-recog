@@ -1,3 +1,5 @@
+// use "npm run client" to run project
+
 import React, {useState, useEffect} from 'react'
 import {createWorker} from 'tesseract.js'
 import img1 from '../Images/Text/sample1.png'

@@ -1,3 +1,5 @@
+// use "npm run client" to run project
+
 import React, { useState, useEffect, useRef } from 'react';
 import {createWorker} from 'tesseract.js'
 import * as mobilenet from "@tensorflow-models/mobilenet";
@@ -18,6 +20,7 @@ const Tfjs = () => {
 	const fileInputRef = useRef()
 
 	/* ------ Tensorflow Stuff ------ */
+	// loads trained models from tensorflow
 	const loadModel = async () => {
 		setIsModelLoading(true)
 		try {
@@ -30,6 +33,7 @@ const Tfjs = () => {
 		}
 	}
 
+	// this implements the upload button
 	const uploadImage = (e) => {
 		const { files } = e.target
 		if (files.length > 0) {
