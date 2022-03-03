@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {createWorker} from 'tesseract.js'
 import * as mobilenet from "@tensorflow-models/mobilenet";
+import * as tf from '@tensorflow/tfjs'
+import {ToggleButton} from '@mui/material';
 
 const Tfjs = () => {
 	//tensorflow states
@@ -10,8 +12,10 @@ const Tfjs = () => {
 	const [results, setResults] = useState([])
 	
 	//tesseract states
-	const [ocr, setOcr] = useState('Recognizing...');
+	const [ocr, setOcr] = useState('Waiting to identify...');
 	const [log, setLog] = useState({});
+	const [textFlag, setTextFlag] = useState(false);
+	const [textState, setTextState] = useState("OCR Off");
 
 	const imageRef = useRef()
 	const textInputRef = useRef()
@@ -41,6 +45,12 @@ const Tfjs = () => {
 	}
 
 	const identify = async () => {
+		if(textFlag){
+			doOCR();
+		}
+		else{
+			setOcr('')
+		}
 		textInputRef.current.value = ''
 		const results = await model.classify(imageRef.current)
 		setResults(results)
@@ -54,16 +64,6 @@ const Tfjs = () => {
 	const triggerUpload = () => {
 		fileInputRef.current.click()
 	}
-
-	useEffect(() => {
-		loadModel()
-		doOCR();
-	}, [])
-
-	if (isModelLoading) {
-		return <h2>Model Loading...</h2>
-	}
-
 
 	/* ------ Tesseract Stuff ----- */
 	const worker = createWorker({
@@ -83,6 +83,33 @@ const Tfjs = () => {
 		const { data: { text } } = await worker.recognize(imageURL);
 		setOcr(text);
 	};
+
+	const toggleOCR = () => {
+		if (textFlag){
+			setTextFlag(false);
+			setOcr("")
+			setTextState("OCR Off")
+		}
+		else{
+			setTextFlag(true);
+			setOcr('Waiting to identify...')
+			setTextState("OCR On")
+		}
+
+
+
+
+	}
+
+	useEffect(() => {
+		loadModel()
+	}, [])
+
+	if (isModelLoading) {
+		return <h2>Model Loading...</h2>
+	}
+
+
 
 
 	return (
@@ -115,6 +142,7 @@ const Tfjs = () => {
 				</div>
 			</div>
 			<div className='Tesseract'>
+				<ToggleButton value="OCR" onClick={toggleOCR}>{textState}</ToggleButton>
 				<p>{ocr}</p>
 				<p>URL: {imageURL}</p>
 				<progress value={log.progress} max='1' ></progress>

@@ -7,6 +7,7 @@
     "@emotion/styled": "^11.6.0",
     "@mui/material": "^5.4.1",
     "@tensorflow-models/mobilenet": "^2.1.0",
+    "@tensorflow/tfjs": "^3.13.0",
     "@tensorflow/tfjs-converter": "^3.13.0",
     "@tensorflow/tfjs-core": "^3.13.0",
     "axios": "^0.25.0",
