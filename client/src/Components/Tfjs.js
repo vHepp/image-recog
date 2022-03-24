@@ -15,7 +15,7 @@ const Tfjs = () => {
 	const [ocr, setOcr] = useState('Waiting to identify...');
 	const [log, setLog] = useState({});
 	const [textFlag, setTextFlag] = useState(false);
-	const [textState, setTextState] = useState("OCR Off");
+	const [textState, setTextState] = useState("Text Recognition Off");
 
 	const imageRef = useRef()
 	const textInputRef = useRef()
@@ -88,17 +88,13 @@ const Tfjs = () => {
 		if (textFlag){
 			setTextFlag(false);
 			setOcr("")
-			setTextState("OCR Off")
+			setTextState("Text Recognition Off")
 		}
 		else{
 			setTextFlag(true);
 			setOcr('Waiting to identify...')
-			setTextState("OCR On")
+			setTextState("Text Recognition On")
 		}
-
-
-
-
 	}
 
 	useEffect(() => {
@@ -106,7 +102,7 @@ const Tfjs = () => {
 	}, [])
 
 	if (isModelLoading) {
-		return <h2>Model Loading...</h2>
+		return <h2>Please wait the Model is Loading...</h2>
 	}
 
 
@@ -115,12 +111,12 @@ const Tfjs = () => {
 	return (
 		<div className="App">
 			<div className='Tensorflow'>
-				<h1 className='header'>Image Identification</h1>
+				<h1 className='header'>Image Data Extraction</h1>
 				<div className='inputHolder'>
 					<input type='file' accept='image/*' capture='camera' className='uploadInput' onChange={uploadImage} ref={fileInputRef} />
-					<button className='uploadImage' onClick={triggerUpload}>Upload Image</button>
-					<span className='or'>OR</span>
-					<input type="text" placeholder='Paster image URL' ref={textInputRef} onChange={handleOnChange} />
+					<button className='uploadImage' ref={textInputRef} onChange={handleOnChange} onClick={triggerUpload}>Please Upload an Image</button>
+					{/* <span className='or'>OR</span> */}
+					{/* <input type="text" placeholder='Paste image URL' ref={textInputRef} onChange={handleOnChange} /> */} 
 				</div>
 				<div className="mainWrapper">
 					<div className="mainContent">
@@ -138,13 +134,13 @@ const Tfjs = () => {
 							})}
 						</div>}
 					</div>
-					{imageURL && <button className='button' onClick={identify}>Identify Image</button>}
+					{imageURL && <button className='button' onClick={identify}>Click to Identify the Image</button>}
 				</div>
 			</div>
 			<div className='Tesseract'>
-				<ToggleButton value="OCR" onClick={toggleOCR}>{textState}</ToggleButton>
+				<ToggleButton style={{margin: '10px'}} value="Text Recognition" onClick={toggleOCR}>{textState}</ToggleButton>
 				<p>{ocr}</p>
-				<p>URL: {imageURL}</p>
+				{/* <p>URL: {imageURL}</p> */}
 				<progress value={log.progress} max='1' ></progress>
 			</div>
 		</div>
