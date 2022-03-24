@@ -25,6 +25,7 @@
     "nodemon": "^2.0.15"
   },
   "dependencies": {
+    "@tensorflow/tfjs-node": "^3.14.0",
     "cors": "^2.8.5",
     "express": "^4.17.2",
     "mongoose": "^6.2.1"
