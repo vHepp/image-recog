@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import {createWorker} from 'tesseract.js'
-import img1 from '../Images/Text/sample1.png'
+import img1 from '../Images/sample1.png'
 
 const Tesseract = () => {
 	const worker = createWorker({

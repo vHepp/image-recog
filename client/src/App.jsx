@@ -7,7 +7,7 @@ const App = () => {
   return (
     <>
       <Tfjs />
-      {/* {<TensorTest />} */}
+      {/* <TensorTest /> */}
     </>
   )
 }

@@ -4,7 +4,10 @@ import * as mobilenet from "@tensorflow-models/mobilenet";
 import * as tf from '@tensorflow/tfjs'
 import {ToggleButton} from '@mui/material';
 
+
+
 const Tfjs = () => {
+
 	//tensorflow states
 	const [isModelLoading, setIsModelLoading] = useState(false)
 	const [model, setModel] = useState(null)
@@ -104,9 +107,6 @@ const Tfjs = () => {
 	if (isModelLoading) {
 		return <h2>Please wait the Model is Loading...</h2>
 	}
-
-
-
 
 	return (
 		<div className="App">
