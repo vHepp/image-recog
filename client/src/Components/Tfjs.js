@@ -1,17 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {createWorker} from 'tesseract.js'
 import * as mobilenet from "@tensorflow-models/mobilenet";
+import * as tf from '@tensorflow/tfjs'
+import {Button, ToggleButton} from '@mui/material';
+import axios from 'axios'
+import {loadGraphModel} from '@tensorflow/tfjs-converter';
+
+const cokeAd = require('../Images/Full Ads/Coke_6.jpeg')
+
+const MODEL_URL = '../my_custom_model/model.json'
+
+
 
 const Tfjs = () => {
+
 	//tensorflow states
 	const [isModelLoading, setIsModelLoading] = useState(false)
 	const [model, setModel] = useState(null)
 	const [imageURL, setImageURL] = useState(null);
 	const [results, setResults] = useState([])
 	
+	const [modelJSON, setModelJSON] = useState('No model yet')
+
 	//tesseract states
-	const [ocr, setOcr] = useState('Recognizing...');
+	const [ocr, setOcr] = useState('Waiting to identify...');
 	const [log, setLog] = useState({});
+	const [textFlag, setTextFlag] = useState(false);
+	const [textState, setTextState] = useState("Text Recognition Off");
 
 	const imageRef = useRef()
 	const textInputRef = useRef()
@@ -41,6 +56,12 @@ const Tfjs = () => {
 	}
 
 	const identify = async () => {
+		if(textFlag){
+			doOCR();
+		}
+		else{
+			setOcr('')
+		}
 		textInputRef.current.value = ''
 		const results = await model.classify(imageRef.current)
 		setResults(results)
@@ -51,19 +72,33 @@ const Tfjs = () => {
 		setResults([])
 	}
 
+	const handelLoadModel = () => {
+		console.log("Loading new JSON GraphModel")
+		
+		/* axios.get("http://localhost:8000/v1/api/tensor/model/getModel")
+		.then((response) => {
+
+			//const routeJSON = response.data
+			//const modelJSONv1 = JSON.parse(routeJSON)
+			
+			
+			
+			
+			setModelJSON(JSON.stringify(response.data))
+			//const model = tf.loadLayersModel()
+			console.log("Loaded model")
+
+			//setModel(model)
+		})
+		.catch((err) => {
+			console.log(err)
+		})
+		*/
+	} 
+	
 	const triggerUpload = () => {
 		fileInputRef.current.click()
 	}
-
-	useEffect(() => {
-		loadModel()
-		doOCR();
-	}, [])
-
-	if (isModelLoading) {
-		return <h2>Model Loading...</h2>
-	}
-
 
 	/* ------ Tesseract Stuff ----- */
 	const worker = createWorker({
@@ -84,16 +119,36 @@ const Tfjs = () => {
 		setOcr(text);
 	};
 
+	const toggleOCR = () => {
+		if (textFlag){
+			setTextFlag(false);
+			setOcr("")
+			setTextState("Text Recognition Off")
+		}
+		else{
+			setTextFlag(true);
+			setOcr('Waiting to identify...')
+			setTextState("Text Recognition On")
+		}
+	}
+
+	useEffect(() => {
+		loadModel()
+	}, [])
+
+	if (isModelLoading) {
+		return <h2>Please wait the Model is Loading...</h2>
+	}
 
 	return (
 		<div className="App">
 			<div className='Tensorflow'>
-				<h1 className='header'>Image Identification</h1>
+				<h1 className='header'>Image Data Extraction</h1>
 				<div className='inputHolder'>
 					<input type='file' accept='image/*' capture='camera' className='uploadInput' onChange={uploadImage} ref={fileInputRef} />
-					<button className='uploadImage' onClick={triggerUpload}>Upload Image</button>
-					<span className='or'>OR</span>
-					<input type="text" placeholder='Paster image URL' ref={textInputRef} onChange={handleOnChange} />
+					<button className='uploadImage' ref={textInputRef} onChange={handleOnChange} onClick={triggerUpload}>Please Upload an Image</button>
+					{/* <span className='or'>OR</span> */}
+					{/* <input type="text" placeholder='Paste image URL' ref={textInputRef} onChange={handleOnChange} /> */} 
 				</div>
 				<div className="mainWrapper">
 					<div className="mainContent">
@@ -111,12 +166,17 @@ const Tfjs = () => {
 							})}
 						</div>}
 					</div>
-					{imageURL && <button className='button' onClick={identify}>Identify Image</button>}
+					{imageURL && <button className='button' onClick={identify}>Click to Identify the Image</button>}
 				</div>
 			</div>
+			<div>
+				<Button style={{margin: '10px'}} onClick={handelLoadModel} >Get ModelJSON</Button>
+				<p>{modelJSON}</p>
+			</div>
 			<div className='Tesseract'>
+				<ToggleButton style={{margin: '10px'}} value="Text Recognition" onClick={toggleOCR}>{textState}</ToggleButton>
 				<p>{ocr}</p>
-				<p>URL: {imageURL}</p>
+				{/* <p>URL: {imageURL}</p> */}
 				<progress value={log.progress} max='1' ></progress>
 			</div>
 		</div>

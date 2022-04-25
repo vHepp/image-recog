@@ -1,12 +1,21 @@
-const express = require("express");
+const express = require('express');
+const cors = require('cors')
 
-const app = express();
-const port = 5000;
+const tensorRoutes = require('./routes/tensorRoutes');
 
-app.use('/', (req,res) => {
-	res.send("It works");
+const PORT = 8000;
+
+const server = express()
+server.use(cors())
+
+server.listen(PORT, () => {
+	console.log(`Listening on port ${PORT}`)
 })
 
-app.listen(port, () => {
-	console.log(`listening on port ${port}`);
+/* route: http://localhost:8000/v1/api/tensor... */
+server.use("/v1/api/tensor", tensorRoutes)
+
+/* route: http://localhost:8000 */
+server.get("/*", (req,res) => {
+	res.status(200).send("server.js /* route")
 })
