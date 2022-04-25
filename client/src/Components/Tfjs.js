@@ -8,24 +8,25 @@ import {ToggleButton} from '@mui/material';
 
 const Tfjs = () => {
 
-	//tensorflow states
+	/* //tensorflow states
 	const [isModelLoading, setIsModelLoading] = useState(false)
 	const [model, setModel] = useState(null)
+	*/
 	const [imageURL, setImageURL] = useState(null);
-	const [results, setResults] = useState([])
+	//const [results, setResults] = useState([])
 	
 	//tesseract states
 	const [ocr, setOcr] = useState('Waiting to identify...');
 	const [log, setLog] = useState({});
-	const [textFlag, setTextFlag] = useState(false);
-	const [textState, setTextState] = useState("Text Recognition Off");
+	const [textFlag, setTextFlag] = useState(true);
+	const [textState, setTextState] = useState("Text Recognition On");
 
 	const imageRef = useRef()
 	const textInputRef = useRef()
 	const fileInputRef = useRef()
 
 	/* ------ Tensorflow Stuff ------ */
-	const loadModel = async () => {
+	/* const loadModel = async () => {
 		setIsModelLoading(true)
 		try {
 			const model = await mobilenet.load()
@@ -35,7 +36,7 @@ const Tfjs = () => {
 			console.log(error)
 			setIsModelLoading(false)
 		}
-	}
+	} */
 
 	const uploadImage = (e) => {
 		const { files } = e.target
@@ -49,42 +50,52 @@ const Tfjs = () => {
 
 	const identify = async () => {
 		if(textFlag){
-			doOCR();
+			await doOCR()
+			.catch((err) => {
+				console.log(err)
+			});
 		}
 		else{
 			setOcr('')
 		}
 		textInputRef.current.value = ''
-		const results = await model.classify(imageRef.current)
-		setResults(results)
+		/* const results = await model.classify(imageRef.current)
+		setResults(results) */
 	}
 
 	const handleOnChange = (e) => {
 		setImageURL(e.target.value)
-		setResults([])
+		/* setResults([]) */
 	}
 
 	const triggerUpload = () => {
 		fileInputRef.current.click()
 	}
 
-	/* ------ Tesseract Stuff ----- */
 	const worker = createWorker({
-		logger: m => {
+		/* 				
+			logger: m => {
 			console.log(m)
 			setLog({
 				status: m.status,
 				progress: m.progress,
 			});
-		},
-	});
-
+		}, */
+	})
+	/* ------ Tesseract Stuff ----- */
 	const doOCR = async () => {
 		await worker.load();
 		await worker.loadLanguage('eng');
 		await worker.initialize('eng');
-		const { data: { text } } = await worker.recognize(imageURL);
+		await worker.setParameters({
+			tessedit_pageseg_mode: '3',
+		})
+		const { data: { text } } = await worker.recognize(imageURL, {
+			
+		});
+		console.log(text);
 		setOcr(text);
+		await worker.terminate();
 	};
 
 	const toggleOCR = () => {
@@ -101,12 +112,12 @@ const Tfjs = () => {
 	}
 
 	useEffect(() => {
-		loadModel()
+		//loadModel()
 	}, [])
 
-	if (isModelLoading) {
+	/* if (isModelLoading) {
 		return <h2>Please wait the Model is Loading...</h2>
-	}
+	} */
 
 	return (
 		<div className="App">
@@ -123,7 +134,7 @@ const Tfjs = () => {
 						<div className="imageHolder">
 							{imageURL && <img src={imageURL} alt="Upload Preview" crossOrigin="anonymous" ref={imageRef} />}
 						</div>
-						{results.length > 0 && <div className='resultsHolder'>
+						{/* {results.length > 0 && <div className='resultsHolder'>
 							{results.map((result, index) => {
 								return (
 									<div className='result' key={result.className}>
@@ -132,7 +143,7 @@ const Tfjs = () => {
 									</div>
 								)
 							})}
-						</div>}
+						</div>} */}
 					</div>
 					{imageURL && <button className='button' onClick={identify}>Click to Identify the Image</button>}
 				</div>
