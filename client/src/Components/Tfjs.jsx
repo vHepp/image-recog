@@ -1,35 +1,40 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {createWorker} from 'tesseract.js'
-import * as mobilenet from "@tensorflow-models/mobilenet";
+import React, { useState, useEffect, useRef } from 'react'; // React hooks, used to manage complex 'states' (useState is basically just variables, useEffect & useRef are a little more complicated...)
+import {createWorker} from 'tesseract.js' // Tesseract workers are what actually scan the image for text
+import * as mobilenet from "@tensorflow-models/mobilenet"; // pre-trained tensorflow.js model
+import {Button, ToggleButton} from '@mui/material'; // fancy buttons
 import * as tf from '@tensorflow/tfjs'
-import {Button, ToggleButton} from '@mui/material';
-import axios from 'axios'
+import axios from 'axios' // allows the client to perform http requests from the backend server
+
 
 
 const Tfjs = () => {
 
-	//tensorflow states
+	//----tensorflow states----//
+	
 	const [isModelLoading, setIsModelLoading] = useState(false)
 	const [model, setModel] = useState(null)
 	
 	const [imageURL, setImageURL] = useState(null);
 	const [results, setResults] = useState([])
 	
-	//tesseract states
-	const [ocr, setOcr] = useState('Waiting to identify...');
-	const [log, setLog] = useState({});
-	const [textFlag, setTextFlag] = useState(true);
+	//----tesseract states----//
+	const [ocr, setOcr] = useState('Waiting to identify...'); // stores the results of text regonition
+	const [textFlag, setTextFlag] = useState(true); // the toggle for text recognition
 	const [textState, setTextState] = useState("Text Recognition On");
 
 	const imageRef = useRef()
 	const textInputRef = useRef()
 	const fileInputRef = useRef()
+
 	/* ------ Tensorflow Stuff ------ */
 	const loadModel = async () => {
 		setIsModelLoading(true)
 		try {
+			// load the demo model
 			const model = await mobilenet.load()
+			// store the model in a state variable
 			setModel(model)
+			// finish loading state
 			setIsModelLoading(false)
 		} catch (error) {
 			console.log(error)
@@ -37,17 +42,46 @@ const Tfjs = () => {
 		}
 	}
 
+
+
+	// Failed version to import TensorFlowjs model from backend server
+	/* const loadModel = async () => {
+		setIsModelLoading(true)
+		try {
+			//try to load model
+			axios.get('http://localhost:5000/loadModel')
+			.then((response) => {
+				const model = tf.loadGraphModel(response.data)
+				setModel(model)
+				setIsModelLoading(false)
+				console.log("Load successful????!!!!")
+			}).catch((err) => {
+				console.log(err)
+			})
+			
+		} catch (error) {
+			console.log(error)
+			const model = mobilenet.load()
+			setModel(model)
+			setIsModelLoading(false)
+		}
+	} */
+
+	// take a user image and store it in brower storage
 	const uploadImage = (e) => {
 		const { files } = e.target
 		if (files.length > 0) {
 			const url = URL.createObjectURL(files[0])
+			// tract image url to reference later
 			setImageURL(url)
 		} else {
 			setImageURL(null)
 		}
 	}
 
+	// the runner fuction for the entire page
 	const identify = async () => {
+		// if the user wants to use text recognition
 		if(textFlag){
 			await doOCR()
 			.catch((err) => {
@@ -72,17 +106,7 @@ const Tfjs = () => {
 	}
 
 	/* ------ Tesseract Stuff ----- */
-	const worker = createWorker({
-		//adding logger options causes the worker to crash for some reason...
-		/* 				
-		logger: m => {
-			console.log(m)
-			setLog({
-				status: m.status,
-				progress: m.progress,
-			});
-		}, */
-	})
+	const worker = createWorker()
 
 	const doOCR = async () => {
 		await worker.load();
@@ -129,23 +153,6 @@ const Tfjs = () => {
 		
 	}
 
-	/*//Download the log file, NOT! WORKING !
-	const handleDownload = () => {
-
-		axios.get('http://localhost:5000/downloadLog')
-		.then((response) => {
-			if (response.status === 200){
-				console.log(response.data)
-			} else if (response.status === 500){
-				console.log(`download Error: ${response.data}`)
-			} else {
-				console.log(`Unknown Error: ${response.data}`)
-			}
-		}).catch((err => {
-			console.log(err)
-		}))
-		
-	} */
 
 	useEffect(() => {
 		loadModel()
@@ -188,10 +195,9 @@ const Tfjs = () => {
 				<ToggleButton style={{margin: '10px'}} value="Text Recognition" onClick={toggleOCR}>{textState}</ToggleButton>
 				<h3 style={{margin: '10px'}}>{ocr}</h3>
 				{/* <p>URL: {imageURL}</p> */}
-				<progress style={{margin: '10px'}} value={log.progress} max='1' ></progress>
+				{/* <progress style={{margin: '10px'}} value={log.progress} max='1' ></progress> */}
 			</div>
 			<Button style={{ backgroundColor:'blueviolet', color:'white', margin: '10px'}} onClick={handleWrite}  >Write to log.txt</Button>
-			{/* <Button style={{ backgroundColor:'blueviolet', color:'white', margin: '10px'}} onClick={handleDownload}  >Download Text Log</Button> */}
 		</div>
 	);
 }

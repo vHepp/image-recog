@@ -66,6 +66,15 @@ server.get('/downloadLog', (req, res) => {
 	})
 })
 
+// http://localhost:5000/loadModel
+// send the model.json to the frontend, doesn't work with frontend tensorflowjs. Needs more research
+server.get('/loadModel', (req, res) => {
+	const myModelPath = '/myModel/model.json'
+	
+	//fs.readFileSync(myModelPath, 'utf-8')
+	res.sendFile(__dirname + myModelPath)
+})
+
 // a catch-all server route if an undefined route it followed
 // http://localhost:5000/
 server.get('/*', (req, res) => {
