@@ -1,6 +1,8 @@
 # Getting Started with This MERN Stack Tesserectjs App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+The client runs from Tfjs.jsx Reactjs component at client/src/Components/Tfjs.jsx.
+
+The expressjs server runs from server.js in the root folder.
 
 ## Available Scripts
 
