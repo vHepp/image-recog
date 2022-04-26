@@ -8,12 +8,12 @@ import axios from 'axios'
 
 const Tfjs = () => {
 
-	/* //tensorflow states
+	//tensorflow states
 	const [isModelLoading, setIsModelLoading] = useState(false)
 	const [model, setModel] = useState(null)
-	*/
+	
 	const [imageURL, setImageURL] = useState(null);
-	//const [results, setResults] = useState([])
+	const [results, setResults] = useState([])
 	
 	//tesseract states
 	const [ocr, setOcr] = useState('Waiting to identify...');
@@ -25,7 +25,7 @@ const Tfjs = () => {
 	const textInputRef = useRef()
 	const fileInputRef = useRef()
 	/* ------ Tensorflow Stuff ------ */
-	/* const loadModel = async () => {
+	const loadModel = async () => {
 		setIsModelLoading(true)
 		try {
 			const model = await mobilenet.load()
@@ -35,7 +35,7 @@ const Tfjs = () => {
 			console.log(error)
 			setIsModelLoading(false)
 		}
-	} */
+	}
 
 	const uploadImage = (e) => {
 		const { files } = e.target
@@ -58,13 +58,13 @@ const Tfjs = () => {
 			setOcr('')
 		}
 		textInputRef.current.value = ''
-		/* const results = await model.classify(imageRef.current)
-		setResults(results) */
+		const results = await model.classify(imageRef.current)
+		setResults(results)
 	}
 
 	const handleOnChange = (e) => {
 		setImageURL(e.target.value)
-		/* setResults([]) */
+		setResults([])
 	}
 
 	const triggerUpload = () => {
@@ -73,6 +73,7 @@ const Tfjs = () => {
 
 	/* ------ Tesseract Stuff ----- */
 	const worker = createWorker({
+		//adding logger options causes the worker to crash for some reason...
 		/* 				
 		logger: m => {
 			console.log(m)
@@ -147,12 +148,12 @@ const Tfjs = () => {
 	} */
 
 	useEffect(() => {
-		//loadModel()
+		loadModel()
 	}, [])
 
-	/* if (isModelLoading) {
+	if (isModelLoading) {
 		return <h2>Please wait the Model is Loading...</h2>
-	} */
+	}
 
 	return (
 		<div className="App">
@@ -169,7 +170,7 @@ const Tfjs = () => {
 						<div className="imageHolder">
 							{imageURL && <img src={imageURL} style={{margin: '10px'}} alt="Upload Preview" crossOrigin="anonymous" ref={imageRef} />}
 						</div>
-						{/* {results.length > 0 && <div className='resultsHolder'>
+						{results.length > 0 && <div className='resultsHolder'>
 							{results.map((result, index) => {
 								return (
 									<div className='result' key={result.className}>
@@ -178,7 +179,7 @@ const Tfjs = () => {
 									</div>
 								)
 							})}
-						</div>} */}
+						</div>}
 					</div>
 					{imageURL && <button className='button' onClick={identify}>Click to Identify the Image</button>}
 				</div>
