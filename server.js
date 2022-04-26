@@ -1,58 +1,65 @@
-const tf = require("@tensorflow/tfjs-node")
+const express = require('express')
+const cors = require('cors')
+const fs = require('fs')
+const path = require('path');
+const http = require('http'); // or 'https' for https:// URLs
 
-console.log('STARTING')
 
-//const source = 'file:///Users/vincent/GitHub/Repos/image-recog/train/_annotations.csv'
-const source = 'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/boston-housing-train.csv';
+const PORT = 5000;
 
-const run = async () => {
-	const csvDataset = tf.data.csv(source, {
-		columnConfigs: {
-		  medv: {
-			isLabel: true
-		  }
+const server = express()
+
+server.use(cors())
+server.use(express.urlencoded({extended: true}))
+server.use(express.json())
+
+
+server.listen(PORT, () => {
+	console.log(`Server listening on port ${PORT}`)
+})
+
+const logFilePath = './log.txt' 
+
+// http://localhost:5000/writeLog
+server.post('/writeLog', (req, res) => {
+	
+	const data = req.body.text
+	console.log(data)
+	
+	fs.writeFileSync(logFilePath, data, (err) => {
+		if(err){
+			console.log(err)
+			res.status(500).send('Failed to write')
 		}
-	});
-	
-	
-	// Number of features is the number of column names minus one for the label
-    // column.
-    const numOfFeatures = (await csvDataset.columnNames()).length - 1;
-
-	// Prepare the Dataset for training.
-	const flattenedDataset = csvDataset.map(({xs, ys}) =>
-	{
-		newXY = {xs:Object.values(xs), ys:Object.values(ys)}
-		
-		// Convert xs(features) and ys(labels) from object form (keyed by
-		// column name) to array form.
-		return newXY;
+		else{
+			console.log("The written has the following contents:");
+			console.log(fs.readFileSync(logFilePath, "utf8"));
+			res.status(200).send("Write Successful")
+		}
 	})
-	.batch(10);
-
-	// Define the model.
-	const model = tf.sequential();
-	model.add(tf.layers.dense({
-		inputShape: [numOfFeatures],
-		units: 1
-	}));
-
-	model.compile({
-		optimizer: tf.train.sgd(0.000001),
-		loss: 'meanSquaredError'
-	});
-	///*
 	
-	// Fit the model using the prepared Dataset
-	return model.fitDataset(flattenedDataset, {
-		epochs: 500,
-		callbacks: {
-			onEpochEnd: async (epoch, logs) => {
-				console.log(epoch + ':' + logs.loss);
-		  	}
-		}
-	}); 
-	//*/
-}
+	
+})
 
-run();
+// http://localhost:5000/downloadLog
+server.get('/downloadLog', (req, res) => {
+
+	res.download(logFilePath, (err) => {
+		if(err){
+			res.status(500).send("Error!!!!")
+		}else{
+			console.log('Downloading Log...')
+
+		}
+	})
+	
+	
+})
+
+
+// http://localhost:5000/
+server.get('/*', (req, res) => {
+	
+	res.send("wildcard /*")
+})
+
