@@ -1,17 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {createWorker} from 'tesseract.js'
-import * as mobilenet from "@tensorflow-models/mobilenet";
 import * as tf from '@tensorflow/tfjs'
 import {Button, ToggleButton} from '@mui/material';
 import axios from 'axios'
-import {loadGraphModel} from '@tensorflow/tfjs-converter';
-
-const cokeAd = require('../Images/Full Ads/Coke_6.jpeg')
 
 const MODEL_URL = 'https://raw.githubusercontent.com/vHepp/image-recog/test/Model/my_custom_model/model.json'
-
-
-
 
 const Tfjs = () => {
 
@@ -42,8 +35,7 @@ const Tfjs = () => {
 	}
 
 	//tesseract states
-	const [ocr, setOcr] = useState('OCR Off');
-	const [log, setLog] = useState({});
+	const [ocr, setOcr] = useState('');
 	const [textFlag, setTextFlag] = useState(false);
 	const [textState, setTextState] = useState("Text Recognition Off");
 
@@ -167,12 +159,13 @@ const Tfjs = () => {
 
 	const identify = async () => {
 		if(textFlag){
+			setOcr("Scanning text...")
 			doOCR();
 			setResults([])
 		}
 		else{
 			runModel()
-			setOcr('OCR Off')
+			setOcr('')
 		}
 		textInputRef.current.value = ''
 	}
@@ -187,31 +180,42 @@ const Tfjs = () => {
 	}
 
 	/* ------ Tesseract Stuff ----- */
-	const worker = createWorker({
-			/* logger: m => {
-			console.log(m)
-			setLog({
-				status: m.status,
-				progress: m.progress,
-			});
-		}, */
-	});
+	const worker = createWorker();
 
 	const doOCR = async () => {
 		await worker.load();
 		await worker.loadLanguage('eng');
 		await worker.initialize('eng');
 		await worker.setParameters({
-			tessedit_pageseg_mode: 3
+			tessedit_pageseg_mode: '3',
 		})
 		const { data: { text } } = await worker.recognize(imageURL);
+		console.log(text);
 		setOcr(text);
+		await worker.terminate();
 	};
+
+	const handleWrite = () => {
+
+		axios.post('http://localhost:5000/writeLog', {text: `${ocr}`})
+		.then((response) => {
+			if (response.status === 200){
+				console.log(response.data)
+			} else if (response.status === 500){
+				console.log(`Write Error: ${response.data}`)
+			} else {
+				console.log(`Unknown Error: ${response.data}`)
+			}
+		}).catch((err => {
+			console.log(err)
+		}))
+		
+	}
 
 	const toggleOCR = () => {
 		if (textFlag){
 			setTextFlag(false);
-			setOcr("OCR Off")
+			setOcr("")
 			setTextState("Text Recognition Off")
 		}
 		else{
@@ -234,38 +238,26 @@ const Tfjs = () => {
 			<div className='Tensorflow'>
 				<h1 className='header'>Image Data Extraction</h1>
 				<div className='inputHolder'>
-					<input type='file' accept='image/*' capture='camera' className='uploadInput' onChange={uploadImage} ref={fileInputRef} />
-					<button className='uploadImage' ref={textInputRef} onChange={handleOnChange} onClick={triggerUpload}>Please Upload an Image</button>
-					{/* <span className='or'>OR</span> */}
-					{/* <input type="text" placeholder='Paste image URL' ref={textInputRef} onChange={handleOnChange} /> */} 
+					<input style={{margin: '10px'}} type='file' accept='image/*' capture='camera' className='uploadInput' onChange={uploadImage} ref={fileInputRef} />
+					<button  className='uploadImage' style={{margin: '10px'}} ref={textInputRef} onChange={handleOnChange} onClick={triggerUpload}>Please Upload an Image</button>
 				</div>
 				<div className="mainWrapper">
 					<div className="mainContent">
-						<div className="imageHolder" style={{width:600, height:400}}>
+						<div className="imageHolder" style={{ margin:'10px',   width:600, height:400}}>
 							{imageURL && <img id='pic' src={imageURL} style={{width:600, height:400}} alt="Upload Preview" crossOrigin="anonymous" ref={imageRef} />}
 						</div>
 						<div className='resultsHolder'>
-								{!results ?
-										<div>
-											<h1>Model is not loaded</h1>
-										</div>
-								:
+							{!results ?
 									<div>
-										<h1>Model loaded!</h1>
-										<h1>{results}</h1>
+										<h1 style={{margin: '10px'}}>Model is not loaded</h1>
 									</div>
-								}
-							{/* {results.map((result, index) => {
-								return (
-									<div className='result' key={result.className}>
-										<span className='name'>{result.className}</span>
-										<span className='confidence'>Confidence level: {(result.probability * 100).toFixed(2)}% {index === 0 && <span className='bestGuess'>Best Guess</span>}</span>
-									</div>
-								)
-							})} */}
-						</div>
-						{/* {results.length > 0 && <div className='resultsHolder'>
-							{results.map((result, index) => {
+							:
+								<div>
+									<h1 style={{margin: '10px'}}>{results}</h1>
+								</div>
+							}
+							{/* Commented becuase it may be useful when tracking multiple possible brands
+								{results.map((result, index) => {
 								return (
 									<div className='result' key={result.className}>
 										<span className='name'>{result.className}</span>
@@ -273,16 +265,27 @@ const Tfjs = () => {
 									</div>
 								)
 							})}
-						</div>} */}
+							*/}
+						</div>
 					</div>
-					{imageURL && <button className='button' onClick={identify}>Click to Identify the Image</button>}
+					{imageURL && <button style={{margin: '10px'}} className='button' onClick={identify}>Click to Identify the Image</button>}
 				</div>
 			</div>
 			<div className='Tesseract'>
-				<ToggleButton style={{margin: '10px'}} value="Text Recognition" onClick={toggleOCR}>{textState}</ToggleButton>
-				<p>{ocr}</p>
-				{/* <p>URL: {imageURL}</p> */}
-				{/* <progress value={log.progress} max='1' ></progress> */}
+				{imageURL &&
+					<>
+						<ToggleButton style={{margin: '10px'}} value="Text Recognition" onClick={toggleOCR}>{textState}</ToggleButton>
+						<h3 style={{margin: '10px'}}>{ocr}</h3>
+					</>
+				}
+				
+				{textFlag &&
+					imageURL &&
+					<Button style={{ backgroundColor:'blueviolet', color:'white', margin: '10px'}} onClick={handleWrite}  >Write to log.txt</Button>
+				}
+				{/* Commented for possible fix to progress bar
+					<progress style={{margin: '10px'}} value={log.progress} max='1' ></progress>
+				*/}
 			</div>
 		</div>
 	);
