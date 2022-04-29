@@ -4,8 +4,8 @@ import * as tf from '@tensorflow/tfjs'
 import {Button, ToggleButton} from '@mui/material';
 import axios from 'axios'
 
-const MODEL_URL = 'https://raw.githubusercontent.com/vHepp/image-recog/test/my_custom_model/model.json' // if on test branch
-//const MODEL_URL = 'https://raw.githubusercontent.com/vHepp/image-recog/main/my_custom_model/model.json' // if on main branch
+//const MODEL_URL = 'https://raw.githubusercontent.com/vHepp/image-recog/test/my_custom_model/model.json' // if on test branch
+const MODEL_URL = 'https://raw.githubusercontent.com/vHepp/image-recog/main/my_custom_model/model.json' // if on main branch
 
 const Tfjs = () => {
 
@@ -14,7 +14,6 @@ const Tfjs = () => {
 	const [model, setModel] = useState(null)
 	const [imageURL, setImageURL] = useState(null);
 	const [results, setResults] = useState([])
-	const imageFrame = document.getElementById('frame')
 
 	let labelMap = {
 		1: {
