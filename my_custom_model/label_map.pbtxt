@@ -1,0 +1,16 @@
+item { 
+	name:'adidas'
+	id:1
+}
+item { 
+	name:'nike'
+	id:2
+}
+item { 
+	name:'cocacola'
+	id:3
+}
+item { 
+	name:'pepsi'
+	id:4
+}
