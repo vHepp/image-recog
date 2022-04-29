@@ -6,8 +6,8 @@ import Tfjsv2 from './Components/Tfjsv2'
 const App = () => {
   return (
     <>
-      {/* <Tfjs /> */}
-      <Tfjsv2 />
+      <Tfjs />
+      {/* <Tfjsv2 /> */}
       {/* <Tesseract /> */}
     </>
   )
