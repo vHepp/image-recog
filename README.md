@@ -8,9 +8,15 @@ The expressjs server runs from server.js in the root folder.
 
 In the project directory, you can run:
 
-### `npm run install-all`
+### `npm install`
 
 Run this command 1st!!!
+
+Installs all required packages for the server
+
+### `npm run client-install`
+
+Run this command 2nd!!!
 
 Installs all required packages for both the server and the client.
 
