@@ -22,6 +22,8 @@ Installs all required packages for both the server and the client.
 
 ### `npm run dev`
 
+Finally, run this command 3nd!!!
+
 Runs both the server and client in the development mode.
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
