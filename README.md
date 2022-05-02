@@ -1,4 +1,4 @@
-# Getting Started with This MERN Stack Tesserectjs App
+# Getting Started with This MERN Stack Image/Text Recognition App
 
 The client runs from Tfjs.jsx Reactjs component at client/src/Components/Tfjs.jsx.
 
