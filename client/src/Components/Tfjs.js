@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {createWorker} from 'tesseract.js'
+import { createWorker } from 'tesseract.js'
 import * as tf from '@tensorflow/tfjs'
-import {Button, ToggleButton} from '@mui/material';
+import { Button, ToggleButton } from '@mui/material';
 import axios from 'axios'
 
 //const MODEL_URL = 'https://raw.githubusercontent.com/vHepp/image-recog/test/my_custom_model/model.json' // if on test branch
@@ -18,19 +18,19 @@ const Tfjs = () => {
 	let labelMap = {
 		1: {
 			name: 'adidas',
-			count:0
+			count: 0
 		},
 		2: {
 			name: 'nike',
-			count:0
+			count: 0
 		},
 		3: {
 			name: 'cocacola',
-			count:0
+			count: 0
 		},
 		4: {
 			name: 'pepsi',
-			count:0
+			count: 0
 		},
 	}
 
@@ -69,10 +69,10 @@ const Tfjs = () => {
 
 	const runModel = async () => {
 
-		let threshold = .50; // 90% beginning confidence
+		let threshold = .90; // 90% beginning confidence
 
 		//reset counts for each logo
-		for (let i = 1; i < 5; i++){
+		for (let i = 1; i < 5; i++) {
 			//console.log(`reset count[${i}]`)
 			labelMap[i].count = 0;
 		}
@@ -81,14 +81,14 @@ const Tfjs = () => {
 		console.log("Running Model")
 
 		const image = document.getElementById('pic')
-		
+
 		const imgWidth = 600;
 		const imgHeight = 400;
 
 		const tfImg = tf.browser.fromPixels(image);
 		//const smallImg = tf.image.resizeBilinear(tfImg, [imgWidth,imgHeight]);
 		//const resized = tf.cast(smallImg, 'int32')
-		var tf4d_ = tf.tensor4d(Array.from(tfImg.dataSync()),[1,imgHeight,imgWidth,3])
+		var tf4d_ = tf.tensor4d(Array.from(tfImg.dataSync()), [1, imgHeight, imgWidth, 3])
 		const tf4d = tf.cast(tf4d_, 'int32');
 
 		//const imageTensor = tfImage.transpose([0,1,2]).expandDims()
@@ -97,56 +97,66 @@ const Tfjs = () => {
 		//tf4d.print()
 		let predictions = await model.executeAsync(tf4d)
 		//console.table(predictions)
-		
+
 		//renderPredictionBoxes(predictions[4].dataSync(), predictions[1].dataSync(), predictions[2].dataSync());
 		/* predictions.forEach(element => {
 			console.table(element)
 		}); */
-		
-		//let data = predictions[0].dataSync()
-		//console.log('Predictions', data)
+
+		/* let locations = predictions[0].dataSync()
+		console.log('THIS ONE?', locations) */
 		let confidences = predictions[1].dataSync()
 		//console.log('Predictions', confidences)
-		//data = predictions[2].dataSync()
-		//console.log('Predictions', data)
-		//data = predictions[3].dataSync()
-		//console.log('Predictions', data)
+		/* let data = predictions[2].dataSync()
+		console.table(data) */
+		/* let data = predictions[3].dataSync()
+		console.log('probably not this one', data) */
 		let logos = predictions[4].dataSync()
 		//console.log('Predictions', logos)
-		/* data = predictions[5].dataSync()
-		console.log('Predictions', data)
-		data = predictions[6].dataSync()
-		console.log('Predictions', data)
-		data = predictions[7].dataSync()
-		console.log('Predictions', data) */
+		let boxes = predictions[5].dataSync()
+		console.log('boxes', boxes)
+		/* let data = predictions[6].dataSync()
+		console.log('?', data) */
+		/* let data = predictions[7].dataSync()
+		console.log('?', data) */
 
 
 		let passing = []
 
-		while(!passing.length && threshold > .05){
+		while (!passing.length && threshold > .65) {
 			console.log("Current confidence threshold: ", threshold)
-			for(let i = 0; i < logos.length ; i++) {
+			for (let i = 0; i < logos.length; i++) {
 				//console.log(`${i}: ${data[i]}`)
-				if(confidences[i] >= threshold){
+				if (confidences[i] >= threshold) {
+					// [top, left, bottom, right]
 					passing.push(
 						{
 							label: logos[i],
-							confidence: `${Math.round(confidences[i]*10000)/100}%`
+							confidence: `${Math.round(confidences[i] * 10000) / 100}%`,
+							index: i,
+							/* box:[
+								locations[i]
+							] */
+
+
+
+
 						}
 					)
 					labelMap[logos[i]].count++
 				}
 			};
 
-			threshold-=.05;
+			threshold -= .05;
 		}
 
+		console.log("passing:")
 		console.table(passing)
 		console.table(labelMap)
 
 		setResults(`Guess: ${labelMap[passing[0].label].name}: ${passing[0].confidence}`)
 		console.log(results)
-		
+
 
 
 
@@ -158,12 +168,12 @@ const Tfjs = () => {
 	}
 
 	const identify = async () => {
-		if(textFlag){
+		if (textFlag) {
 			setOcr("Scanning text...")
 			doOCR();
 			setResults([])
 		}
-		else{
+		else {
 			runModel()
 			setOcr('')
 		}
@@ -174,7 +184,7 @@ const Tfjs = () => {
 		setImageURL(e.target.value)
 		setResults([])
 	}
-	
+
 	const triggerUpload = () => {
 		fileInputRef.current.click()
 	}
@@ -197,28 +207,28 @@ const Tfjs = () => {
 
 	const handleWrite = () => {
 
-		axios.post('http://localhost:5000/writeLog', {text: `${ocr}`})
-		.then((response) => {
-			if (response.status === 200){
-				console.log(response.data)
-			} else if (response.status === 500){
-				console.log(`Write Error: ${response.data}`)
-			} else {
-				console.log(`Unknown Error: ${response.data}`)
-			}
-		}).catch((err => {
-			console.log(err)
-		}))
-		
+		axios.post('http://localhost:5000/writeLog', { text: `${ocr}` })
+			.then((response) => {
+				if (response.status === 200) {
+					console.log(response.data)
+				} else if (response.status === 500) {
+					console.log(`Write Error: ${response.data}`)
+				} else {
+					console.log(`Unknown Error: ${response.data}`)
+				}
+			}).catch((err => {
+				console.log(err)
+			}))
+
 	}
 
 	const toggleOCR = () => {
-		if (textFlag){
+		if (textFlag) {
 			setTextFlag(false);
 			setOcr("")
 			setTextState("Text Recognition Off")
 		}
-		else{
+		else {
 			setTextFlag(true);
 			setOcr('OCR On. Waiting to identify...')
 			setTextState("Text Recognition On")
@@ -238,22 +248,22 @@ const Tfjs = () => {
 			<div className='Tensorflow'>
 				<h1 className='header'>Image Data Extraction</h1>
 				<div className='inputHolder'>
-					<input style={{margin: '10px'}} type='file' accept='image/*' capture='camera' className='uploadInput' onChange={uploadImage} ref={fileInputRef} />
-					<button  className='uploadImage' style={{margin: '10px'}} ref={textInputRef} onChange={handleOnChange} onClick={triggerUpload}>Please Upload an Image</button>
+					<input style={{ margin: '10px' }} type='file' accept='image/*' capture='camera' className='uploadInput' onChange={uploadImage} ref={fileInputRef} />
+					<button className='uploadImage' style={{ margin: '10px' }} ref={textInputRef} onChange={handleOnChange} onClick={triggerUpload}>Please Upload an Image</button>
 				</div>
 				<div className="mainWrapper">
 					<div className="mainContent">
-						<div className="imageHolder" style={{ margin:'10px',   width:600, height:400}}>
-							{imageURL && <img id='pic' src={imageURL} style={{width:600, height:400}} alt="Upload Preview" crossOrigin="anonymous" ref={imageRef} />}
+						<div className="imageHolder" style={{ margin: '10px', width: 600, height: 400 }}>
+							{imageURL && <img id='pic' src={imageURL} style={{ width: 600, height: 400 }} alt="Upload Preview" crossOrigin="anonymous" ref={imageRef} />}
 						</div>
 						<div className='resultsHolder'>
 							{!results ?
-									<div>
-										<h1 style={{margin: '10px'}}>Model is not loaded</h1>
-									</div>
-							:
 								<div>
-									<h1 style={{margin: '10px'}}>{results}</h1>
+									<h1 style={{ margin: '10px' }}>Model is not loaded</h1>
+								</div>
+								:
+								<div>
+									<h1 style={{ margin: '10px' }}>{results}</h1>
 								</div>
 							}
 							{/* Commented becuase it may be useful when tracking multiple possible brands
@@ -268,20 +278,20 @@ const Tfjs = () => {
 							*/}
 						</div>
 					</div>
-					{imageURL && <button style={{margin: '10px'}} className='button' onClick={identify}>Click to Identify the Image</button>}
+					{imageURL && <button style={{ margin: '10px' }} className='button' onClick={identify}>Click to Identify the Image</button>}
 				</div>
 			</div>
 			<div className='Tesseract'>
 				{imageURL &&
 					<>
-						<ToggleButton style={{margin: '10px'}} value="Text Recognition" onClick={toggleOCR}>{textState}</ToggleButton>
-						<h3 style={{margin: '10px'}}>{ocr}</h3>
+						<ToggleButton style={{ margin: '10px' }} value="Text Recognition" onClick={toggleOCR}>{textState}</ToggleButton>
+						<h3 style={{ margin: '10px' }}>{ocr}</h3>
 					</>
 				}
-				
+
 				{textFlag &&
 					imageURL &&
-					<Button style={{ backgroundColor:'blueviolet', color:'white', margin: '10px'}} onClick={handleWrite}  >Write to log.txt</Button>
+					<Button style={{ backgroundColor: 'blueviolet', color: 'white', margin: '10px' }} onClick={handleWrite}  >Write to log.txt</Button>
 				}
 				{/* Commented for possible fix to progress bar
 					<progress style={{margin: '10px'}} value={log.progress} max='1' ></progress>
